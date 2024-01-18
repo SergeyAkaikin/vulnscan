@@ -1,4 +1,4 @@
-module gitlab.simbirsoft/verify/s.akaykin/vulnscan
+module github.com/SergeyAkaikin/vulnscan
 
 go 1.21.5
 
