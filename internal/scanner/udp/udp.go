@@ -1,28 +1,26 @@
 package udp
 
 import (
-	"log/slog"
 	"net"
 	"time"
 )
 
-func Scan(udpAddr *net.UDPAddr, payload []byte, timeOut time.Duration) (open bool) {
-	conn, err := net.DialUDP("udp", nil, udpAddr)
+func Scan(dstAddr *net.UDPAddr, payload []byte, timeOut time.Duration) (bool, error) {
+	conn, err := net.DialUDP("udp", nil, dstAddr)
 	defer conn.Close()
 	if err != nil {
-		return false
+		return false, err
 	}
 
 	if err = sendRequest(conn, payload); err != nil {
-		slog.Info("Sending udp request problem", "error", err)
-		return
+		return false, err
 	}
 
 	if err = waitResponse(conn, timeOut); err == nil {
-		open = true
+		return true, nil
 	}
 
-	return
+	return false, err
 }
 
 func sendRequest(conn *net.UDPConn, payload []byte) error {

@@ -2,18 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/SergeyAkaikin/vulnscan/internal/scanner/udp"
+	"github.com/SergeyAkaikin/vulnscan/internal/scanner/tcp"
 	"net"
-	"time"
 )
 
 const test = "php.testsparker.com"
-const port = "2611"
+const port = "80"
 
 func main() {
-	udpAddr, err := net.ResolveUDPAddr("udp", test+":"+port)
-	fmt.Println(udpAddr, err)
-
-	open := udp.Scan(udpAddr, []byte{}, time.Second*1)
-	fmt.Println(open)
+	tcpAddr, _ := net.ResolveTCPAddr("tcp", test+":"+port)
+	fmt.Println(tcp.SYNScan(tcpAddr))
 }
