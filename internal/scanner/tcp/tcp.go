@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-func ConnectScan(dstAddr *net.TCPAddr) (bool, error) {
-	conn, err := net.DialTCP("tcp", nil, dstAddr)
+func ConnectScan(dstAddr *net.TCPAddr, timeout time.Duration) (bool, error) {
+	conn, err := net.DialTimeout("tcp", dstAddr.String(), timeout)
 	if err == nil {
 		conn.Close()
 		return true, nil
@@ -18,7 +18,7 @@ func ConnectScan(dstAddr *net.TCPAddr) (bool, error) {
 	return false, err
 }
 
-func SYNScan(dstAddr *net.TCPAddr) (bool, error) {
+func SYNScan(dstAddr *net.TCPAddr, timeout time.Duration) (bool, error) {
 	dstIp := dstAddr.IP.To4()
 	dstPort := layers.TCPPort(dstAddr.Port)
 
@@ -67,7 +67,7 @@ func SYNScan(dstAddr *net.TCPAddr) (bool, error) {
 		return false, err
 	}
 
-	if err := conn.SetDeadline(time.Now().Add(2 * time.Second)); err != nil {
+	if err := conn.SetDeadline(time.Now().Add(timeout)); err != nil {
 		return false, err
 	}
 

@@ -29,10 +29,10 @@ func ResolveDNS(address string) (addresses []string) {
 	return
 }
 
-func ResolveTCPAddr(ip, port string) (*net.TCPAddr, error) {
+func ResolveTCPAddr(ip string, port uint16) (*net.TCPAddr, error) {
 	return net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%s", ip, port))
 }
 
-func ResolveUDPAddr(ip, port string) (*net.UDPAddr, error) {
+func ResolveUDPAddr(ip string, port uint16) (*net.UDPAddr, error) {
 	return net.ResolveUDPAddr("udp", fmt.Sprintf("%s:%s", ip, port))
 }

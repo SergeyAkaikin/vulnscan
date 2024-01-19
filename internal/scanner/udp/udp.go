@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func Scan(dstAddr *net.UDPAddr, payload []byte, timeOut time.Duration) (bool, error) {
+func Scan(dstAddr *net.UDPAddr, timeOut time.Duration, payload []byte) (bool, error) {
 	conn, err := net.DialUDP("udp", nil, dstAddr)
 	defer conn.Close()
 	if err != nil {
