@@ -13,6 +13,7 @@ func Define() (host string, port uint16, enableList EnableList) {
 	flag.Parse()
 
 	host = flag.Arg(0)
+
 	port = uint16(*p)
 
 	if *ts {

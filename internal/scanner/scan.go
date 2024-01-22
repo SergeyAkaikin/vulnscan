@@ -4,11 +4,10 @@ import (
 	"github.com/SergeyAkaikin/vulnscan/internal/resolver"
 	"github.com/SergeyAkaikin/vulnscan/internal/scanner/tcp"
 	"github.com/SergeyAkaikin/vulnscan/internal/scanner/udp"
-	"log"
 	"time"
 )
 
-var TIMEOUT time.Duration = 1 * time.Second
+var TIMEOUT time.Duration = 2 * time.Second
 
 type Scanner interface {
 	NetworkType() string
@@ -38,15 +37,10 @@ func (sc *Base) NetworkType() string {
 func (sc *TCPConnect) Scan(ip string, port uint16) bool {
 	dstAddr, err := resolver.ResolveTCPAddr(ip, port)
 	if err != nil {
-		log.Println(err)
 		return false
 	}
 
-	open, err := tcp.ConnectScan(dstAddr, sc.Timeout)
-
-	if err != nil {
-		log.Println(err)
-	}
+	open, _ := tcp.ConnectScan(dstAddr, sc.Timeout)
 
 	return open
 }
@@ -65,15 +59,10 @@ func NewTCPSYN() Scanner {
 func (sc *TCPSYN) Scan(ip string, port uint16) bool {
 	dstAddr, err := resolver.ResolveTCPAddr(ip, port)
 	if err != nil {
-		log.Println(err)
 		return false
 	}
 
-	open, err := tcp.SYNScan(dstAddr, sc.Timeout)
-
-	if err != nil {
-		log.Println(err)
-	}
+	open, _ := tcp.SYNScan(dstAddr, sc.Timeout)
 
 	return open
 }
@@ -93,15 +82,10 @@ func NewUDP() Scanner {
 func (sc *UDP) Scan(ip string, port uint16) bool {
 	dstAddr, err := resolver.ResolveUDPAddr(ip, port)
 	if err != nil {
-		log.Println(err)
 		return false
 	}
 
-	open, err := udp.Scan(dstAddr, sc.Timeout, sc.payload)
-
-	if err != nil {
-		log.Println(err)
-	}
+	open, _ := udp.Scan(dstAddr, sc.Timeout, sc.payload)
 
 	return open
 }

@@ -1,8 +1,16 @@
 package main
 
-const test = "php.testsparker.com"
-const port = "80"
+import (
+	"github.com/SergeyAkaikin/vulnscan/internal/app"
+	"github.com/SergeyAkaikin/vulnscan/internal/params"
+)
 
 func main() {
-	panic("Not implemented")
+
+	host, port, enableList := params.Define()
+
+	addresses := app.InitAddresses(host)
+	scanners := app.InitScanners(0, enableList)
+	report := app.StartWorkers(addresses, port, scanners)
+	app.WriteReport(report)
 }
