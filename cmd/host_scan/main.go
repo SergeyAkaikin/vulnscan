@@ -1,18 +1,21 @@
 package main
 
 import (
-	"github.com/SergeyAkaikin/vulnscan/internal/app"
-	"github.com/SergeyAkaikin/vulnscan/internal/params"
+	"fmt"
+	"github.com/SergeyAkaikin/vulnscan/internal/resolver"
+	"github.com/SergeyAkaikin/vulnscan/internal/scanner/tcp"
 )
 
 func main() {
 
-	host, port, enableList := params.Define()
+	//host, port, enableList := params.Define()
+	//
+	//addresses := app.InitAddresses(host)
+	//scanners := app.InitScanners(0, enableList)
+	//report := app.StartWorkers(addresses, port, scanners)
+	//app.WriteReport(report)
 
-	addresses := app.InitAddresses(host)
-	scanners := app.InitScanners(0, enableList)
-	report := app.StartWorkers(addresses, port, scanners)
-	app.WriteReport(report)
-	//addr, _ := resolver.ResolveTCPAddr("scanme.nmap.org", 31337)
-	//fmt.Println(tcp.ConnectScan(addr, time.Second*2))
+	tcpAddr, err := resolver.ResolveTCPAddr("php.testsparker.com", 80)
+	fmt.Println(tcpAddr, err)
+	fmt.Println(tcp.ACKPing(tcpAddr))
 }

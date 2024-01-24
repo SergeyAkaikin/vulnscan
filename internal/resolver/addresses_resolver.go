@@ -28,7 +28,9 @@ func ResolveDNS(address string) (addresses []string) {
 
 	return
 }
-
+func ResolveIPAddr(ip string) (*net.IPAddr, error) {
+	return net.ResolveIPAddr("ip4:icmp", ip)
+}
 func ResolveTCPAddr(ip string, port uint16) (*net.TCPAddr, error) {
 	return net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", ip, port))
 }
