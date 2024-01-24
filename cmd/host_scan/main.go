@@ -2,20 +2,20 @@ package main
 
 import (
 	"fmt"
-	"github.com/SergeyAkaikin/vulnscan/internal/resolver"
-	"github.com/SergeyAkaikin/vulnscan/internal/scanner/tcp"
+	"github.com/SergeyAkaikin/vulnscan/internal/app"
+	"github.com/SergeyAkaikin/vulnscan/internal/params"
+	"time"
 )
 
 func main() {
 
-	//host, port, enableList := params.Define()
-	//
-	//addresses := app.InitAddresses(host)
-	//scanners := app.InitScanners(0, enableList)
-	//report := app.StartWorkers(addresses, port, scanners)
-	//app.WriteReport(report)
-
-	tcpAddr, err := resolver.ResolveTCPAddr("php.testsparker.com", 80)
-	fmt.Println(tcpAddr, err)
-	fmt.Println(tcp.ACKPing(tcpAddr))
+	start := time.Now()
+	parameters := params.Define()
+	addresses := app.InitAddresses(parameters.Host)
+	upHosts := app.PingAddresses(addresses)
+	scanners := app.InitScanners(parameters)
+	report := app.StartWorkers(upHosts, scanners)
+	end := time.Since(start)
+	app.WriteReport(report)
+	fmt.Println("======", end, "=======")
 }

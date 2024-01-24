@@ -7,7 +7,6 @@ import (
 	"github.com/SergeyAkaikin/vulnscan/internal/scanner"
 	"strings"
 	"sync"
-	"time"
 )
 
 var scannersMapper = map[string]func() scanner.Scanner{
@@ -17,9 +16,14 @@ var scannersMapper = map[string]func() scanner.Scanner{
 }
 
 const (
-	lPort      = uint16(1)
-	rPort      = uint16(8192)
 	workersNum = 512
+)
+
+var (
+	lPort   = uint16(1)
+	rPort   = uint16(8192)
+	isRange = true
+	ports   []uint16
 )
 
 type TargetsReport map[string][]Target
@@ -36,19 +40,24 @@ type targetStatus struct {
 }
 type ScannersPipeLine []scanner.Scanner
 
-type openPorts map[uint16]struct{}
+type openPorts map[string]struct{}
 
-func InitScanners(timeout int, parameters params.EnableList) ScannersPipeLine {
+func InitScanners(parameters params.Parameters) ScannersPipeLine {
 	pipeLine := make(ScannersPipeLine, 0, len(scannersMapper))
-	for key, isSet := range parameters {
+	for key, isSet := range parameters.Enables {
 		if isSet {
 			pipeLine = append(pipeLine, scannersMapper[key]())
 		}
 	}
-
-	if timeout > 0 {
-		scanner.TIMEOUT = time.Duration(timeout) * time.Second
+	if parameters.IsRange {
+		lPort = parameters.Ports[0]
+		rPort = parameters.Ports[1]
+	} else {
+		isRange = false
+		ports = parameters.Ports
 	}
+
+	scanner.TIMEOUT = parameters.Timeout
 
 	return pipeLine
 }
@@ -66,10 +75,49 @@ func InitAddresses(addressValue string) []string {
 		return resolver.ResolveSubnetAddrs(addressValue)
 	}
 
-	return append(resolver.Resolve(addressValue), resolver.ResolveDNS(addressValue)...)
+	return resolver.ResolveDNS(addressValue)
 }
 
-func StartWorkers(addrs []string, port uint16, scannersPipeLine ScannersPipeLine) TargetsReport {
+func PingAddresses(addresses []string) []string {
+	workersPool := make(chan struct{}, workersNum)
+	defer close(workersPool)
+
+	addressesCh := make(chan string)
+
+	var wg sync.WaitGroup
+
+	for _, address := range addresses {
+		workersPool <- struct{}{}
+		wg.Add(1)
+		go pingWorker(address, workersPool, addressesCh, &wg)
+	}
+
+	go func(wg *sync.WaitGroup) {
+		wg.Wait()
+		close(addressesCh)
+	}(&wg)
+
+	return writeAddresses(addressesCh)
+
+}
+
+func pingWorker(address string, workersPool <-chan struct{}, addressesCh chan<- string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	if scanner.Ping(address) {
+		addressesCh <- address
+	}
+	<-workersPool
+}
+
+func writeAddresses(addressesCh <-chan string) []string {
+	addressesList := make([]string, 0)
+	for address := range addressesCh {
+		addressesList = append(addressesList, address)
+	}
+	return addressesList
+}
+
+func StartWorkers(addrs []string, scannersPipeLine ScannersPipeLine) TargetsReport {
 	workersPool := make(chan struct{}, workersNum)
 	defer close(workersPool)
 
@@ -83,12 +131,10 @@ func StartWorkers(addrs []string, port uint16, scannersPipeLine ScannersPipeLine
 
 	go openPortsWriter(targetsReport, openPortsList, portsCh)
 
-	fmt.Println(addrs, port)
-
 	for _, addr := range addrs {
 		for _, currScanner := range scannersPipeLine {
-			fmt.Println(addr)
-			if port == 0 {
+			fmt.Println(addr, "scanning...")
+			if isRange || (len(ports) == 0) {
 				for port := lPort; port <= rPort; port++ {
 					workersPool <- struct{}{}
 					wg.Add(1)
@@ -103,17 +149,19 @@ func StartWorkers(addrs []string, port uint16, scannersPipeLine ScannersPipeLine
 					)
 				}
 			} else {
-				workersPool <- struct{}{}
-				wg.Add(1)
-				go portsWorker(
-					addr,
-					port,
-					currScanner,
-					workersPool,
-					openPortsList,
-					portsCh,
-					&wg,
-				)
+				for _, port := range ports {
+					workersPool <- struct{}{}
+					wg.Add(1)
+					go portsWorker(
+						addr,
+						port,
+						currScanner,
+						workersPool,
+						openPortsList,
+						portsCh,
+						&wg,
+					)
+				}
 			}
 		}
 	}
@@ -134,7 +182,8 @@ func portsWorker(
 ) {
 	defer wg.Done()
 
-	if _, scanned := openPortsList[port]; !scanned && scanner.Scan(addr, port) {
+	ipport := fmt.Sprintf("%s:%d", addr, port)
+	if _, scanned := openPortsList[ipport]; !scanned && scanner.Scan(addr, port) {
 		openPortsCh <- targetStatus{port: port, ip: addr, network: scanner.NetworkType()}
 	}
 
@@ -147,7 +196,8 @@ func openPortsWriter(
 	portsCh <-chan targetStatus,
 ) {
 	for target := range portsCh {
-		portsList[target.port] = struct{}{}
+		key := fmt.Sprintf("%s:%d", target.ip, target.port)
+		portsList[key] = struct{}{}
 		if targetPortsList, exists := report[target.ip]; !exists {
 			targetPortsList := make([]Target, 0)
 			targetPortsList = append(targetPortsList, Target{target.port, target.network})
