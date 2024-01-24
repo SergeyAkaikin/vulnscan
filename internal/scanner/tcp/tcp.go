@@ -56,7 +56,7 @@ func SYNScan(dstAddr *net.TCPAddr, timeout time.Duration) (bool, error) {
 		return false, err
 	}
 
-	conn, err := net.ListenPacket("ip4:tcp", "")
+	conn, err := net.ListenPacket("ip4:tcp", srcIp.String())
 	if err != nil {
 		return false, err
 	}
