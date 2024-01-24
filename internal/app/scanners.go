@@ -47,7 +47,7 @@ func InitScanners(timeout int, parameters params.EnableList) ScannersPipeLine {
 	}
 
 	if timeout > 0 {
-		scanner.TIMEOUT = time.Duration(timeout) * time.Millisecond
+		scanner.TIMEOUT = time.Duration(timeout) * time.Second
 	}
 
 	return pipeLine

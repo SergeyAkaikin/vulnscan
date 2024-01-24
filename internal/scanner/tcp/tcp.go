@@ -1,6 +1,7 @@
 package tcp
 
 import (
+	"fmt"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"math/rand"
@@ -64,6 +65,7 @@ func SYNScan(dstAddr *net.TCPAddr, timeout time.Duration) (bool, error) {
 	defer conn.Close()
 
 	if _, err := conn.WriteTo(buf.Bytes(), &net.IPAddr{IP: dstIp}); err != nil {
+		fmt.Println(err)
 		return false, err
 	}
 
@@ -87,9 +89,6 @@ func SYNScan(dstAddr *net.TCPAddr, timeout time.Duration) (bool, error) {
 					if tcp.SYN && tcp.ACK {
 						return true, nil
 					}
-
-				} else {
-					return false, nil
 				}
 			}
 		}

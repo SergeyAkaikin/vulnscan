@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-var TIMEOUT time.Duration = 2 * time.Second
+var TIMEOUT time.Duration = 1 * time.Second
 
 type Scanner interface {
 	NetworkType() string
