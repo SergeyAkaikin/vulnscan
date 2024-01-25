@@ -7,10 +7,11 @@ import (
 
 func Scan(dstAddr *net.UDPAddr, timeOut time.Duration, payload []byte) (bool, error) {
 	conn, err := net.DialUDP("udp", nil, dstAddr)
-	defer conn.Close()
 	if err != nil {
 		return false, err
 	}
+
+	defer conn.Close()
 
 	if err = sendRequest(conn, payload); err != nil {
 		return false, err

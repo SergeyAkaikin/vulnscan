@@ -25,17 +25,10 @@ func isLinux() bool {
 
 func isRoot() bool {
 	currUser, err := user.Current()
-	if err != nil {
-		return false
-	}
-
-	return currUser.Username == "root"
+	return err == nil && currUser.Username == "root"
 }
 
 func isAdministrator() bool {
 	_, err := os.Open("\\\\.\\PHYSICALDRIVE0")
-	if err != nil {
-		return false
-	}
-	return true
+	return err != nil
 }
