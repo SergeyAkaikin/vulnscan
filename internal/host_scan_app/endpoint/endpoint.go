@@ -1,18 +1,18 @@
-package app
+package endpoint
 
 import (
 	"fmt"
-	"github.com/SergeyAkaikin/vulnscan/internal/params"
-	"github.com/SergeyAkaikin/vulnscan/internal/resolver"
-	"github.com/SergeyAkaikin/vulnscan/internal/scanner"
+	"github.com/SergeyAkaikin/vulnscan/internal/host_scan_app/params"
+	"github.com/SergeyAkaikin/vulnscan/internal/host_scan_app/resolver"
+	scanner2 "github.com/SergeyAkaikin/vulnscan/internal/host_scan_app/scanners"
 	"strings"
 	"sync"
 )
 
-var scannersMapper = map[string]func() scanner.Scanner{
-	"tc": scanner.NewTCPConnect,
-	"ts": scanner.NewTCPSYN,
-	"u":  scanner.NewUDP,
+var scannersMapper = map[string]func() scanner2.Scanner{
+	"tc": scanner2.NewTCPConnect,
+	"ts": scanner2.NewTCPSYN,
+	"u":  scanner2.NewUDP,
 }
 
 const (
@@ -38,7 +38,7 @@ type targetStatus struct {
 	ip      string
 	network string
 }
-type ScannersPipeLine []scanner.Scanner
+type ScannersPipeLine []scanner2.Scanner
 
 type openPorts map[string]struct{}
 
@@ -57,7 +57,7 @@ func InitScanners(parameters params.Parameters) ScannersPipeLine {
 		ports = parameters.Ports
 	}
 
-	scanner.TIMEOUT = parameters.Timeout
+	scanner2.TIMEOUT = parameters.Timeout
 
 	return pipeLine
 }
@@ -103,7 +103,7 @@ func PingAddresses(addresses []string) []string {
 
 func pingWorker(address string, workersPool <-chan struct{}, addressesCh chan<- string, wg *sync.WaitGroup) {
 	defer wg.Done()
-	if scanner.Ping(address) {
+	if scanner2.Ping(address) {
 		addressesCh <- address
 	}
 	<-workersPool
@@ -174,7 +174,7 @@ func StartWorkers(addrs []string, scannersPipeLine ScannersPipeLine) TargetsRepo
 func portsWorker(
 	addr string,
 	port uint16,
-	scanner scanner.Scanner,
+	scanner scanner2.Scanner,
 	workersPool <-chan struct{},
 	openPortsList openPorts,
 	openPortsCh chan<- targetStatus,

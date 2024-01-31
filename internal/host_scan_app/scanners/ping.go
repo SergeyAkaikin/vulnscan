@@ -1,9 +1,9 @@
-package scanner
+package scanners
 
 import (
-	"github.com/SergeyAkaikin/vulnscan/internal/resolver"
-	"github.com/SergeyAkaikin/vulnscan/internal/scanner/icmp"
-	"github.com/SergeyAkaikin/vulnscan/internal/scanner/tcp"
+	"github.com/SergeyAkaikin/vulnscan/internal/host_scan_app/resolver"
+	"github.com/SergeyAkaikin/vulnscan/internal/host_scan_app/scanners/icmp"
+	"github.com/SergeyAkaikin/vulnscan/internal/host_scan_app/scanners/tcp"
 	"github.com/SergeyAkaikin/vulnscan/internal/user"
 )
 

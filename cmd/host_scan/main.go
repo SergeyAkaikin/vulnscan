@@ -2,20 +2,19 @@ package main
 
 import (
 	"fmt"
-	"github.com/SergeyAkaikin/vulnscan/internal/app"
-	"github.com/SergeyAkaikin/vulnscan/internal/params"
+	"github.com/SergeyAkaikin/vulnscan/internal/host_scan_app/params"
+	"github.com/SergeyAkaikin/vulnscan/internal/pkg/host_scan_app"
 	"time"
 )
 
 func main() {
 
 	start := time.Now()
+
 	parameters := params.Define()
-	addresses := app.InitAddresses(parameters.Host)
-	upHosts := app.PingAddresses(addresses)
-	scanners := app.InitScanners(parameters)
-	report := app.StartWorkers(upHosts, scanners)
+	app := host_scan_app.New(parameters)
+	app.Run()
+
 	end := time.Since(start)
-	app.WriteReport(report)
 	fmt.Println("======", end, "=======")
 }
