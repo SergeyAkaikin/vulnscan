@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	url := fmt.Sprint("http://127.0.0.1:8000/login1.php")
+	url := "http://127.0.0.1:8000/login1.php"
 	qParams := []string{"uid", "password"}
 	method := http.MethodPost
 
