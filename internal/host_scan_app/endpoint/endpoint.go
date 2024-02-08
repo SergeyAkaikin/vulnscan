@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"github.com/SergeyAkaikin/vulnscan/internal/host_scan_app/params"
 	"github.com/SergeyAkaikin/vulnscan/internal/host_scan_app/resolver"
-	scanner2 "github.com/SergeyAkaikin/vulnscan/internal/host_scan_app/scanners"
+	"github.com/SergeyAkaikin/vulnscan/internal/host_scan_app/scanners"
 	"strings"
 	"sync"
 )
 
-var scannersMapper = map[string]func() scanner2.Scanner{
-	"tc": scanner2.NewTCPConnect,
-	"ts": scanner2.NewTCPSYN,
-	"u":  scanner2.NewUDP,
+var scannersMapper = map[string]func() scanners.Scanner{
+	"tc": scanners.NewTCPConnect,
+	"ts": scanners.NewTCPSYN,
+	"u":  scanners.NewUDP,
 }
 
 const (
@@ -38,7 +38,7 @@ type targetStatus struct {
 	ip      string
 	network string
 }
-type ScannersPipeLine []scanner2.Scanner
+type ScannersPipeLine []scanners.Scanner
 
 type openPorts map[string]struct{}
 
@@ -57,7 +57,7 @@ func InitScanners(parameters params.Parameters) ScannersPipeLine {
 		ports = parameters.Ports
 	}
 
-	scanner2.TIMEOUT = parameters.Timeout
+	scanners.TIMEOUT = parameters.Timeout
 
 	return pipeLine
 }
@@ -74,8 +74,12 @@ func InitAddresses(addressValue string) []string {
 
 		return resolver.ResolveSubnetAddrs(addressValue)
 	}
+	addrs := resolver.ResolveDNS(addressValue)
+	if len(addrs) == 0 {
+		return resolver.Resolve(addressValue)
+	}
 
-	return resolver.ResolveDNS(addressValue)
+	return addrs
 }
 
 func PingAddresses(addresses []string) []string {
@@ -103,7 +107,7 @@ func PingAddresses(addresses []string) []string {
 
 func pingWorker(address string, workersPool <-chan struct{}, addressesCh chan<- string, wg *sync.WaitGroup) {
 	defer wg.Done()
-	if scanner2.Ping(address) {
+	if scanners.Ping(address) {
 		addressesCh <- address
 	}
 	<-workersPool
@@ -174,7 +178,7 @@ func StartWorkers(addrs []string, scannersPipeLine ScannersPipeLine) TargetsRepo
 func portsWorker(
 	addr string,
 	port uint16,
-	scanner scanner2.Scanner,
+	scanner scanners.Scanner,
 	workersPool <-chan struct{},
 	openPortsList openPorts,
 	openPortsCh chan<- targetStatus,

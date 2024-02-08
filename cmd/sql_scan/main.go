@@ -8,15 +8,9 @@ import (
 
 func main() {
 	url := "http://127.0.0.1:8000/login1.php"
-	qParams := []string{"uid", "password"}
-	method := http.MethodPost
+	uid := "uid=test"
+	pass := "password=test"
+	b := blind_injection.New(url, http.MethodPost, uid, pass)
+	fmt.Println(b.TimeBased())
 
-	inj := blind_injection.New(url, method, qParams...)
-	injectable, err := inj.InjectParam()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Println(injectable)
 }

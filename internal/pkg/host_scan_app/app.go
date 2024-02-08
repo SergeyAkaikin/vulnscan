@@ -1,6 +1,7 @@
 package host_scan_app
 
 import (
+	"fmt"
 	"github.com/SergeyAkaikin/vulnscan/internal/host_scan_app/endpoint"
 	"github.com/SergeyAkaikin/vulnscan/internal/host_scan_app/params"
 )
@@ -18,6 +19,7 @@ func New(parameters params.Parameters) *HostScanApp {
 func (a *HostScanApp) Run() {
 	addresses := endpoint.InitAddresses(a.params.Host)
 	upHosts := endpoint.PingAddresses(addresses)
+	fmt.Println(upHosts, "are up")
 	scanners := endpoint.InitScanners(a.params)
 	report := endpoint.StartWorkers(upHosts, scanners)
 	endpoint.WriteReport(report)
