@@ -55,7 +55,7 @@ func (b *Blind) boolParamCheck(param int) (bool, string) {
 		return false, ""
 	}
 
-	return true, fmt.Sprintln(successPayload, unsuccessPayload)
+	return true, fmt.Sprintf("%s\n%s", successPayload, unsuccessPayload)
 }
 
 func trueQuery() string {

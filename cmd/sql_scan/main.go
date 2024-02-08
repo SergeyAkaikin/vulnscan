@@ -12,5 +12,6 @@ func main() {
 	pass := "password=test"
 	b := blind_injection.New(url, http.MethodPost, uid, pass)
 	fmt.Println(b.TimeBased())
+	fmt.Println(b.BooleanBased())
 
 }

@@ -2,7 +2,12 @@ package blind_injection
 
 import "time"
 
-var timeStringers = []timeStringer{newMySQL()}
+var timeStringers = []timeStringer{
+	newMySQL(),
+	newMySQLOld(),
+	newPgSQL(),
+	newMsSQL(),
+}
 
 func (b *Blind) TimeBased() (injectable bool, payload string) {
 	for i := 0; i < len(b.QParameters); i++ {
