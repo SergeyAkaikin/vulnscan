@@ -22,7 +22,7 @@ func (b *Blind) TimeBased() (injectable bool, payload string) {
 
 func (b *Blind) timeCheck(parId int, query string) (bool, string) {
 	start := time.Now()
-	_, payload, err := b.makeRequest(parId, query)
+	_, payload, err := b.MakeRequest(parId, query, nil)
 	end := time.Since(start)
 	if err != nil {
 		return false, ""

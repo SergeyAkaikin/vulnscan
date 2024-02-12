@@ -21,7 +21,7 @@ func (b *Blind) BooleanBased() (injectable bool, payload string) {
 }
 
 func (b *Blind) boolParamCheck(param int) (bool, string) {
-	res, unsuccessPayload, err := b.makeRequest(param, falseQuery())
+	res, unsuccessPayload, err := b.MakeRequest(param, falseQuery(), nil)
 	if err != nil {
 		return false, ""
 	}
@@ -36,7 +36,7 @@ func (b *Blind) boolParamCheck(param int) (bool, string) {
 	}
 	fStatus := res.StatusCode
 
-	res, successPayload, err := b.makeRequest(param, trueQuery())
+	res, successPayload, err := b.MakeRequest(param, trueQuery(), nil)
 	if err != nil {
 		return false, ""
 	}
