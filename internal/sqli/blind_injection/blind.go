@@ -8,6 +8,8 @@ type Blind struct {
 	sqli.Base
 }
 
+var errorPayload = "(SELECT)|(select)|(statement)|(syntax)|(SYNTAX)|(Error)|(error)|(ERROR)"
+
 func New(url, method string, parameters ...string) *Blind {
 	return &Blind{
 		sqli.Base{

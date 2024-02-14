@@ -5,6 +5,7 @@ import (
 	"github.com/SergeyAkaikin/vulnscan/internal/sqli"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -13,6 +14,8 @@ const maxColumns = 20
 type Union struct {
 	sqli.Base
 }
+
+var errorPayload = "(SELECT)|(select)|(statement)|(syntax)|(SYNTAX)|(Error)|(error)|(ERROR)"
 
 func New(url string, method string, parameters ...string) *Union {
 	return &Union{
@@ -49,6 +52,11 @@ func (u *Union) Inject(extCookies *http.Cookie) (injectable bool, payload string
 		if resSize == -1 {
 			content, err := io.ReadAll(res.Body)
 			if err != nil {
+				continue
+			}
+
+			reg := regexp.MustCompile(errorPayload)
+			if reg.Match(content) {
 				continue
 			}
 
