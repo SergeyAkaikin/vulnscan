@@ -15,8 +15,6 @@ type Union struct {
 	sqli.Base
 }
 
-var errorPayload = "(SELECT)|(select)|(statement)|(syntax)|(SYNTAX)|(Error)|(error)|(ERROR)"
-
 func New(url string, method string, parameters ...string) *Union {
 	return &Union{
 		sqli.Base{
@@ -55,15 +53,13 @@ func (u *Union) Inject(extCookies *http.Cookie) (injectable bool, payload string
 				continue
 			}
 
-			reg := regexp.MustCompile(errorPayload)
+			reg := regexp.MustCompile(sqli.ErrorPayload)
 			if reg.Match(content) {
 				continue
 			}
 
 			resSize = int64(len(content))
 		}
-
-		fmt.Println(clearSize, resSize)
 
 		if resSize != clearSize {
 			return true, payload

@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+var ErrorPayload = `(?i)(select)|(statement)|(syntax)|(error)|(warning)`
+
 type Base struct {
 	Url         string
 	Method      string
